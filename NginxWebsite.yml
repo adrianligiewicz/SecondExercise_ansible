@@ -1,0 +1,52 @@
+---
+  - name: Nginx Website Playbook
+    hosts: RHEL
+    become: yes
+    tasks:
+      - name: Install Nginx
+        yum:
+          name: nginx
+          state: latest
+          update_cache: yes
+      - name: Start and enable Nginx service
+        service:
+          name: nginx
+          state: started
+          enabled: yes
+
+      - name: Install git
+        yum:
+          name: git
+          state: latest
+
+      - name: Clone website repository
+        git:
+          repo: https://github.com/adrianligiewicz/FirstExercise.git
+          dest: /tmp/FirstExercise
+
+      - name: Adjust website file with hostname
+        replace:
+          path: /tmp/FirstExercise/index.html
+          regexp: '__HOSTNAME__'
+          replace: "{{ ansible_hostname }}"
+      - name: Copy website file to Nginx root directory and set permissions
+        copy:
+          src: /tmp/FirstExercise/index.html
+          remote_src: yes
+          dest: /usr/share/nginx/html/index.html
+          owner: nginx
+          group: nginx
+          mode: '0644'
+          force: yes
+          
+      - name: Restart Nginx to apply changes
+        service:
+          name: nginx
+          state: restarted
+
+      - name: Allow HTTP traffic through firewalld
+        firewalld:
+          service: http
+          permanent: yes
+          state: enabled
+          immediate: yes

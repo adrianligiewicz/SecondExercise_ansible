@@ -1,7 +1,12 @@
 ---
   - name: First Playbook
-    hosts: ubuntu
+    hosts: ubuntufull
+    become: yes
     tasks:
       - name: Print a message
         debug:
           msg: "Hello, Ansible!"
+      - name: reboot server
+        reboot:
+          reboot_timeout: 600
+
